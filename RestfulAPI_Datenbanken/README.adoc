@@ -1,0 +1,34 @@
+Genutzte Specs:
+
+Gradle Version: 7.6
+Java: 17
+
+Ich habe die Datenbank von meiner Phase 3 korrigiert und in dieser Phase verbessert.
+
+Folgendes wurde an der Datenbank gemacht:
+- Wertebereich der Punkte hat in Phase 3 gefehlt -> korrigiert
+- ON DELETE CASCADE ON UPDATE CASCADE haben teilweise in den Tabellen: Bewertung, Aufgaben, Entwickler, Designer gefehlt -> korrigiert
+- Telefonnummer von INTEGER in VARCHAR verändert damit sqlite die rowid verwaltet. Bei INTEGER PRIMARY KEY wird anscheinend der Wert als Alias für die RowID genutzt -> verbessert.
+
+
+Kritische Entscheidungen:
+
+- POST nutzer & POST kunden & POST projektleiter & POST spezialisten & POST entwickler:
+    Bei der fiktiven URL habe ich die email als Pfad mitgegeben, da ich meiner Meinung nach es für sinnvoller halte statt die ROWID zurückzugeben.
+- POST projektleiter:
+    In der yaml Datei wurde das Gehalt als Integer festgelegt. Ich habe mich daran gehalten, obwohl das Gehalt in meiner Datenbank als Double festgelegt wurde. (-> Fehler in der yaml Datei?)
+- POST projekte:
+    Bei der fiktiven URL habe ich den Projektnamen als Pfad mitgegeben, da ich meiner Meinung nach es für sinnvoller halte statt die ROWID zurückzugeben. Es ist meiner Meinung nach intuitiver für den Anwender. 
+- POST projekte/{projektid}/bewertungen
+    1. Bei der fiktiven URL habe ich die BewertungsID bzw. die ROWID der Bewertung als Pfad mitgegeben.
+    2. In der Sprechstunde wurde gesagt, dass der Code 204 falsch waere und bei POST Code 201 stehen sollte. Ich habe mich an die Aussagen der Sprechstunde gerichtet.
+- POST projekte/{projektid}/aufgaben
+    1. Bei der fiktiven URL habe ich die AufgabenID bzw. die ROWID der Aufgabe als Pfad mitgegeben.
+    2. In der Sprechstunde wurde gesagt, dass der Code 204 falsch waere und bei POST Code 201 stehen sollte. Ich habe mich an die Aussagen der Sprechstunde gerichtet.
+    3. 2. In der Sprechstunde wurde gesagt, dass der bei prioritaet boolean falsch waere. Also habe ich die prioritaet als String festgelegt, da es in meiner Datenbank als VARCHAR implementiert wurde.
+    
+- POST projekte/{projektid}/spezialisten
+    1. Bei der fiktiven URL habe ich die SpezialistID bzw. die ROWID des Spezialisten als Pfad mitgegeben, weil ich es intuitiver fand die SpezialistID in der url zurückzugeben statt die ROWID von der arbeitet-Relation. Der Anwender weißt ja schließlich nicht welche Tabelle man hat.
+    2. In der Sprechstunde wurde gesagt, dass der Code 204 falsch waere und bei POST Code 201 stehen sollte. Ich habe mich an die Aussagen der Sprechstunde gerichtet.
+    
+

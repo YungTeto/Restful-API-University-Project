@@ -1,0 +1,66 @@
+//GET Nutzer
+curl -X GET http://localhost:8080/nutzer -v
+
+//POST Nutzer
+curl -X POST http://localhost:8080/nutzer -F email=max@gmail.com -F passwort=PW123 -v
+
+//GET Kunden
+curl -X GET http://localhost:8080/kunden -v
+
+//POST Kunden
+curl -X POST http://localhost:8080/kunden -F email=dax@gmail.com -F passwort=PW123% -F telefon=012467 -v
+
+//GET Projektleiter
+curl -X GET http://localhost:8080/projektleiter -v
+
+//POST Projektleiter
+curl -X POST http://localhost:8080/projektleiter -F email=rax@gmail.com -F passwort=GG123 -F gehalt=14 -v
+
+//GET Spezialisten
+curl -X GET 'http://localhost:8080/spezialisten' -v
+
+//POST Spezialisten
+curl -X POST http://localhost:8080/spezialisten -F email=kax@mail.com -F passwort=PW123 -F verfuegbarkeitsstatus=on -v
+
+//GET Projekte
+curl -X GET http://localhost:8080/projekte -v
+
+//GET Projekte/{projektid}/bewertungen
+curl -X GET http://localhost:8080/projekte/1/bewertungen -v
+
+//GET projekte/{projektid}/aufgaben
+curl -X GET http://localhost:8080/projekte/1/aufgaben -v
+
+//GET projekte/{projektid}/spezialisten
+ curl -X GET http://localhost:8080/projekte/1/spezialisten -v
+
+ //GET Entwickler
+ curl -X GET http://localhost:8080/entwickler -v
+
+//POST Entwickler
+ curl -X POST http://localhost:8080/entwickler -F email=pax@gmail.com -F passwort=PW123 -F verfuegbarkeitsstatus=on -F kuerzel=PAXDE123 -F benennung=C -v
+
+//GET programmierer
+curl -X GET http://localhost:8080/programmierer -v
+
+
+Authorisierter Kunde
+//POST projekte
+curl -X POST http://localhost:8080/projekte -F name=valorant -F deadline=2021-08-01 -u daniel@gmail.com:B234 -v
+
+//POST projekte/{projektid}/bewertungen
+curl -X POST http://localhost:8080/projekte/1/bewertungen -F punktzahl=5 -u curry@gmail.com:K234 -v
+
+//PATCH bewertungen/{bewertungid}
+curl -X PATCH http://localhost:8080/bewertungen/4 -F punktzahl=4 -u curry@gmail.com:K234 -v
+
+//DELETE bewertungen/{bewertungid}
+curl -X DELETE http://localhost:8080/bewertungen/4 -v -u curry@gmail.com:K234 
+
+
+Projektleiter:
+// POST projekte/{projektid}/aufgaben
+curl -X POST http://localhost:8080/projekte/1/aufgaben -F deadline=2023-01-16 -F beschreibung=Test -F status=Anfang -F prioritaet=leicht -u projektdude@gmail.com:A234 -v
+
+//POST projekte/{projektid}/spezialisten
+curl -X POST http://localhost:8080/projekte/2/spezialisten -F spezialistid=2 -v -u projektdude@gmail.com:A234

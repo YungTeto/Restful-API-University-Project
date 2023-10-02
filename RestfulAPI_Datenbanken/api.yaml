@@ -1,0 +1,797 @@
+openapi: 3.0.2
+info:
+  title: DBS Programmierpraktikum - Phase 4 - API-Spezifikation
+  description: >-
+    In der folgenden Liste finden Sie die <b>für die Anwendergruppen
+    spezifischen Grundfunktionalitäten</b>. Es müssen <b>alle folgenden
+    allgemeinen Bedingungen</b> eingehalten werden: <ul>
+      <li><font color="red"><b>Wichtiger allgemeiner Hinweis:</b> Beachten Sie unbedingt die Benennung der Form-Parameter, Query-Parameter sowie die der Ergebnistupel. Bei Abweichungen von in der API angegebenen Benennungen wird der entsprechende Endpunkt als <u><b>falsch</b></u> bewertet.</font></li>
+      <li><b>Bei einer gültigen <code>GET</code>-Anfrage wird ein JSON-Array von JSON-Objekten, wobei ein JSON-Objekt eine Entität darstellt, zurückgegeben</b> und dies mit einem Code <code>200</code> belegt. Wird die <code>GET</code>-Anfrage auf einer nicht vorhandenen Ressource ausgeführt, so wird mit Code <code>404</code> geantwortet. Ist die Ressource woanders zu finden, wird dies mit dem Code <code>301</code> und dem Link im Header belegt. Eine <code>GET</code>-Anfrage auf einer Ressource, die eine Sammlung von Entitäten darstellt, kann durch Übergabe von bestimmten Parametern und dazugehörigen Werten <b>case-insensitive gefiltert</b> werden. Dabei muss jede Entität in der Sammlung allen Parametern gleichzeitig genügen. Die Sammlung wird in der Antwort in ein JSON-Array gekapselt.</li>
+      <li><b>Bei <code>POST</code>-Anfragen werden alle Parameter bis auf diejenigen Parameter der entsprechenden Ressource benötigt, die Standardwerte besitzen.</b> Wird die <code>POST</code>-Anfrage auf einer nicht vorhandenen Ressource ausgeführt, so wird mit Code <code>404</code> geantwortet. Ist die Ressource woanders zu finden, wird dies mit dem Code <code>301</code> und dem Link im Header belegt. Ist die Ressource vorhanden, aber die Anfragen wegen irgendeiner anderen Sache (ungültige Werte, zu wenig Parameter, ...) ungültig, so wird dies mit einem Code <code>400</code> beantwortet, ansonsten mit Code <code>201</code> und dem Link zur neuen Ressource im Header belegt (<b>Wichtiger Hinweis:</b> Sollte ein spezifischer Endpunkt in unserer API nicht vorhanden sein, kann eine fiktive Location zurückgegeben werden. Beispiel: ".../endpunkt/{id}", wobei {id} die <b>RowID</b> der neu angelegten Ressource ist).</li>
+      <li><b>Bei <code>PATCH</code>-Anfragen werden nur diejenigen Parameter benötigt, die geändert werden sollen, folglich mindestens einer.</b> Wird die <code>PATCH</code>-Anfrage auf einer nicht vorhandenen Ressource ausgeführt, so wird mit Code <code>404</code> geantwortet. Ist die Ressource vorhanden, aber die Anfragen wegen irgendeiner anderen Sache (ungültige Werte, ...) ungültig, so wird dies mit einem Code <code>400</code> beantwortet, anonsten mit Code <code>204</code> belegt.</li>
+      <li><b>Bei einer gültigen <code>DELETE</code>-Anfrage wird der Code <code>204</code> zurückgegeben.</b> Ist die Ressource nicht vorhanden, wird dies mit Code <code>404</code> belegt.</li>
+      <li><b>Bereiche mit einem Schlosssymbol werden durch eine HTTP-Basisauthentifizierung abgesichert.</b> Wird einer dieser Bereiche ohne oder mit falschen Anmeldedaten aufgerufen, so wird dies mit einem <code>401</code> und dem Header <code>WWW-Authenticate</code> belegt. Sind die Anmeldedaten richtig, aber der Anwender ist nicht authorisiert, so wird dies mit einem Code <code>403</code> belegt.</li>
+      <li><b>In Antworten mit Code <code>4xx</code> wird ein JSON-Objekt, das mindestens den Schlüssel <code>"message"</code> mit dem Wert <code>&lt;Fehlermeldung&gt;</code> enthält, zurückgegeben</b>, wobei <code>&lt;Fehlermeldung&gt;</code> eine für den Umstand entsprechende Fehlermeldung ist. Bei einer auftretenden Exception reicht dafür die Nachricht dieser.</li>
+      <li><b>Antworten auf gültige <code>POST</code>- und <code>PATCH</code>-Anfragen beinhalten nichts.</b></li>
+      <li><b>Anfragen sind vom Typ <code>multipart/form-data</code>, Antworten sind vom Typ <code>application/json;charset=UTF-8</code>.</b></li>
+      <li><b>Datums- und Zeitangaben werden im entsprechenden Standard-SQL-Format übertragen</b> (sowohl in der Anfrage, als auch in der Antwort).</li>
+      <li><b>Passwörter werden der Einfachheit halber im Klartext übergeben.</b></li>
+      <li><b><u>Die erwähnten bzw. alle IDs sind RowIDs!!!</u></b></li>
+    </ul>
+  version: 2022.WiSe.1
+servers:
+  - url: 'http://localhost:8080'
+paths:
+  /nutzer:
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Nutzer zurück.
+      description: 
+        Alle **Nutzer** werden zurückgegeben. Falls Query-Parameter mit Werten
+        angegeben wurden, wird die Rückgabe noch entsprechend gefiltert.
+      parameters:
+        - name: email
+          in: query
+          description: 'Nur Nutzer, deren **E-Mail-Adresse** `email` enthält, werden zurückgegeben.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        nutzerid:
+                          type: integer
+                          description: '**RowID des Nutzers**.'
+                      required:
+                        - nutzerid
+                    - $ref: '#/components/schemas/nutzer'
+    post:
+      tags:
+        - Anwender
+      summary: Fügt einen Nutzer hinzu.
+      description:
+        Ein **Nutzer** wird mit den entsprechenden Werten hinzugefügt.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/nutzer'
+      responses:
+        '201':
+          $ref: '#/components/responses/201'
+        '400':
+          $ref: '#/components/responses/400'
+  /kunden:
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Kunden zurück.
+      description: 
+        Alle **Kunden** werden zurückgegeben. Falls Query-Parameter mit Werten
+        angegeben wurden, wird die Rückgabe noch entsprechend gefiltert.
+      parameters:
+        - name: email
+          in: query
+          description: 'Nur Kunden, deren **E-Mail-Adresse** `email` enthält, werden zurückgegeben.'
+          schema:
+            type: string
+        - name: telefonnummer
+          in: query
+          description: 'Nur Kunden, deren **Telefonnummer** `telefonnummer` enthält, werden zurückgegeben.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        nutzerid:
+                          type: integer
+                          description: '**RowID des Nutzers**.'
+                        kundenid:
+                          type: integer
+                          description: '**RowID des Nutzers**.'
+                      required:
+                        - nutzerid
+                        - kundenid
+                    - $ref: '#/components/schemas/nutzer'
+                    - $ref: '#/components/schemas/kunde'
+    post:
+      tags:
+        - Anwender
+      summary: Fügt einen Kunden hinzu.
+      description:
+        Ein **Kunde** wird mit den entsprechenden Werten hinzugefügt.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/nutzer'
+                - $ref: '#/components/schemas/kunde'
+      responses:
+        '201':
+          $ref: '#/components/responses/201'
+        '400':
+          $ref: '#/components/responses/400'
+  /projektleiter:
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Projektleiter zurück.
+      description: 
+        Alle **Projektleiter** werden zurückgegeben. Falls Query-Parameter mit Werten
+        angegeben wurden, wird die Rückgabe noch entsprechend gefiltert.
+      parameters:
+        - name: email
+          in: query
+          description: 'Nur Projektleiter, deren **E-Mail-Adresse** `email` enthält, werden zurückgegeben.'
+          schema:
+            type: string
+        - name: gehalt
+          in: query
+          description: 'Nur Projektleiter, deren **Gehalt** größer als `gehalt` ist, werden zurückgegeben.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        nutzerid:
+                          type: integer
+                          description: '**RowID des Nutzers**.'
+                        projektleiterid:
+                          type: integer
+                          description: '**RowID des Projektlieters**.'
+                      required:
+                        - nutzerid
+                        - kundenid
+                    - $ref: '#/components/schemas/nutzer'
+                    - $ref: '#/components/schemas/projektlieter'
+    post:
+      tags:
+        - Anwender
+      summary: Fügt einen Projektleiter hinzu.
+      description:
+        Ein **Projektleiter** wird mit den entsprechenden Werten hinzugefügt.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/nutzer'
+                - $ref: '#/components/schemas/projektlieter'
+      responses:
+        '201':
+          $ref: '#/components/responses/201'
+        '400':
+          $ref: '#/components/responses/400'
+  /spezialisten:
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Spezialisten zurück.
+      description: 
+        Alle **Spezialisten** werden zurückgegeben. Falls Query-Parameter mit Werten
+        angegeben wurden, wird die Rückgabe noch entsprechend gefiltert.
+      parameters:
+        - name: email
+          in: query
+          description: 'Nur Spezialisten, deren **E-Mail-Adresse** `email` enthält, werden zurückgegeben.'
+          schema:
+            type: string
+        - name: verfuegbar
+          in: query
+          description: 'Nur Spezialisten, deren **Verfügbarkeitsstatus** gleich `verfuegbar` ist, werden zurückgegeben.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        nutzerid:
+                          type: integer
+                          description: '**RowID des Nutzers**.'
+                        spezialistid:
+                          type: integer
+                          description: '**RowID des Spezialisten**.'
+                      required:
+                        - nutzerid
+                        - kundenid
+                    - $ref: '#/components/schemas/nutzer'
+                    - $ref: '#/components/schemas/spezialist'
+    post:
+      tags:
+        - Anwender
+      summary: Fügt einen Spezialisten hinzu.
+      description:
+        Ein **Spezialist** wird mit den entsprechenden Werten hinzugefügt.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/nutzer'
+                - $ref: '#/components/schemas/spezialist'
+      responses:
+        '201':
+          $ref: '#/components/responses/201'
+        '400':
+          $ref: '#/components/responses/400'
+  
+  
+  
+          
+  /projekte:
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Projekte zurück.
+      description: 
+        Alle **Projekte** werden zurückgegeben.
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        projektid:
+                          type: integer
+                          description: '**RowID des Projekts**.'
+                      required:
+                        - projektid
+                    - $ref: '#/components/schemas/projekt'
+    post:
+      tags:
+        - Authentifizierter und als Kunde authorisierter Anwender
+      summary: Fügt ein Projekt hinzu.
+      security:
+        - basicAuth: []
+      description: Ein **Projekt** wird hinzugefügt.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/projekt'
+      responses:
+        '201':
+          $ref: '#/components/responses/201'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+
+  /projekte/{projektid}/bewertungen:
+   get:
+      tags:
+        - Anwender
+      summary: Gibt Bewertungen zurück.
+      description: 
+        Alle **Bewertungen** von einem Projekt werden zurückgegeben.
+      parameters:
+        - name: projektid
+          in: path
+          description: '**RowID** des Projekts.'
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        bewertungid:
+                          type: integer
+                          description: '**RowID der Bewertung**.'
+                      required:
+                        - bewertungid
+                    - $ref: '#/components/schemas/bewertung'
+   post:
+      tags:
+        - Authentifizierter und als Kunde authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Fügt eine Bewertung hinzu.
+      description: 
+        Eine **Bewertung** wird mit den entsprechenden Werten hinzugefügt.
+      parameters:
+        - name: projektid
+          in: path
+          description: '**RowID** der Bewertung.'
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/bewertung'
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+
+  /projekte/{projektid}/aufgaben:
+   get:
+      tags:
+        - Anwender
+      summary: Gibt Aufgaben zurück.
+      description: 
+        Alle **Aufgaben** von einem Projekt werden zurückgegeben.
+      parameters:
+        - name: projektid
+          in: path
+          description: '**RowID** des Projekts.'
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        aufgabeid:
+                          type: integer
+                          description: '**RowID der Aufgabe**.'
+                      required:
+                        - aufgabeid
+                    - $ref: '#/components/schemas/aufgabe'
+   post:
+      tags:
+        - Authentifizierter und als Projektleiter authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Fügt eine Aufgabe zu einem Projekt hinzu.
+      description: 
+        Eine **Aufgabe** wird mit den entsprechenden Werten hinzugefügt.
+      parameters:
+        - name: projektid
+          in: path
+          description: '**RowID** des Projekts.'
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/aufgabe'
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+  /projekte/{projektid}/spezialisten:
+   get:
+      tags:
+        - Anwender
+      summary: Gibt alles Spezialisten zurück, die an einem Projekt arbeiten.
+      description: 
+        Alle **Spezialisten** von einem Projekt werden zurückgegeben.
+      parameters:
+        - name: projektid
+          in: path
+          description: '**RowID** des Projekts.'
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        spezialistid:
+                          type: integer
+                          description: '**RowID des Spezialisten**.'
+                      required:
+                        - spezialistid
+                    - $ref: '#/components/schemas/spezialist'
+                    - $ref: '#/components/schemas/nutzer'
+   post:
+      tags:
+        - Authentifizierter und als Projektleiter authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Fügt einen existierenden Spezialisten zu einem Projekt hinzu.
+      description: 
+        Ein existierender **Spezialist** wird zu einem Projekt hinzugefügt.
+      parameters:
+        - name: projektid
+          in: path
+          description: '**RowID** des Projekts.'
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                spezialistid: 
+                  type: string
+                  description: '**RowID** des Spezialisten.'
+              required:
+                - spezialistid
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+  /entwickler:
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Entwickler zurück.
+      description: 
+        Alle **Entwickler** werden zurückgegeben. Falls Query-Parameter mit Werten
+        angegeben wurden, wird die Rückgabe noch entsprechend gefiltert.
+      parameters:
+        - name: kuerzel
+          in: query
+          description: 'Nur Entwickler, deren **kuerzel** `email` enthält, werden zurückgegeben.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        nutzerid:
+                          type: integer
+                          description: '**RowID des Nutzers**.'
+                        spezialistid:
+                          type: integer
+                          description: '**RowID des Spezialisten**.'
+                        entwicklerid:
+                          type: integer
+                          description: '**RowID des Entwicklers**.'
+                      required:
+                        - nutzerid
+                        - entwicklerid
+                    - $ref: '#/components/schemas/nutzer'
+                    - $ref: '#/components/schemas/spezialist'
+                    - $ref: '#/components/schemas/entwickler'
+    post:
+      tags:
+        - Anwender
+      summary: Fügt einen Entwickler hinzu.
+      description:
+        Ein **Entwickler** wird mit den entsprechenden Werten und seiner bevorzugten Programmiersprache hinzugefügt.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/nutzer'
+                - $ref: '#/components/schemas/spezialist'
+                - $ref: '#/components/schemas/entwickler'
+                - $ref: '#/components/schemas/programmiersprache'
+      responses:
+        '201':
+          $ref: '#/components/responses/201'
+        '400':
+          $ref: '#/components/responses/400'
+  /programmierer:
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Entwickler zurück (per Redirect).
+      description: >-
+        Alle **Entwickler** werden zurückgegeben. Hierbei wird ein Redirect verwendet und der entsprechende Location-Header angegeben.
+      responses:
+        '301':
+          $ref: '#/components/responses/301'
+
+
+  /bewertungen/{bewertungid}:
+    patch:
+      tags:
+        - Authentifizierter und als Kunde authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Ändert eine (eigene) Bewertung.
+      description: 
+        Eine (eigene) **Bewertung** wird gemäß der Request-Parameter geändert.
+      parameters:
+        - name: bewertungid
+          in: path
+          description: '**RowID** der Bewertung.'
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/bewertung'
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+    delete:
+      tags:
+        - Authentifizierter und als Kunde authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Löscht eine (eigene) Bewertung.
+      description: 
+        Eine (eigene) **Bewertung** wird entfernt.
+      parameters:
+        - name: bewertungid
+          in: path
+          description: '**RowID** der Bewertung.'
+          schema:
+            type: integer
+          required: true
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+
+          
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  responses:
+    '201':
+      description: '**Created**.'
+      headers:
+        Location:
+          description: Die URL der neuen Ressource. Siehe hierzu auch die Anmerkung bzgl. fiktiver Links im ersten Abschnitt.
+          schema:
+            type: string
+    '204':
+      description: '**No Content**.'
+    '301':
+      description: '**Moved Permanently**.'
+      headers:
+        Location:
+          description: Die URL der Ressource.
+          schema:
+            type: string
+    '400':
+      description: '**Bad Request**.'
+    '401':
+      description: '**Unauthorized**.'
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+    '403':
+      description: '**Forbidden**.'
+    '404':
+      description: '**Not Found**.'
+  schemas:
+    nutzer:
+      type: object
+      properties:
+        email:
+          type: string
+          description: '**E-Mail-Adresse** des Nutzers.'
+        passwort:
+          type: string
+          description: '**Passwort** des Nutzers.'
+      required:
+        - email
+        - passwort
+    kunde:
+      type: object
+      properties:
+        telefon:
+          type: string
+          description: '**Telefonnummer** des Kunden.'
+      required:
+        - telefon
+    projektlieter:
+      type: object
+      properties:
+        gehalt:
+          type: integer
+          description: '**Gehalt** des Projektleiters.'
+      required:
+        - gehalt
+    bewertung:
+      type: object
+      properties:
+        punktzahl:
+          type: integer
+          description: '**Bewertung** des Projekts.'
+        text:
+          type: string
+          description: '**Kommentar** zur Bewertung des Projekts.'
+      required:
+        - punktzahl
+    projekt:
+      type: object
+      properties:
+        name:
+          type: string
+          description: '**Benennung** des Projekts.'
+        deadline:
+          type: string
+          description: '**Deadline** des Projekts.'
+      required:
+        - name
+        - deadline
+    aufgabe:
+      type: object
+      properties:
+        deadline:
+          type: string
+          description: '**Deadline** der Aufgabe.'
+        beschreibung:
+          type: string
+          description: '**Beschreibung** der Aufgabe.'
+        status:
+          type: string
+          description: '**Status** der Aufgabe.'
+        prioritaet:
+          type: boolean
+          description: '**Vermerk über die Prioritisierung** der Aufgabe.'
+      required:
+        - deadline
+        - beschreibung
+        - status
+        - prioritaet
+    spezialist:
+      type: object
+      properties:
+        verfuegbarkeitsstatus:
+          type: string
+          description: '**Verfügbarkeitsstatus** des Spezialisten.'
+      required:
+        - verfuegbarkeitsstatus
+    entwickler:
+      type: object
+      properties:
+        kuerzel:
+          type: string
+          description: '**Kürzel** des Entwicklers.'
+      required:
+        - kuerzel
+    programmiersprache:
+      type: object
+      properties:
+        benennung:
+          type: string
+          description: '**Benennung** der Programmiersprache.'
+      required:
+        - benennung
+    designer:
+      type: object
+      properties:
+        alias:
+          type: string
+          description: '**Alias** des Designers.'
+    spezifikation:
+      type: object
+      properties:
+        benennung:
+          type: string
+          description: '**Benennung** der Spezifikation.'
+      required:
+        - benennung
+    kompetenz:
+      type: object
+      properties:
+        benennung:
+          type: string
+          description: '**Benennung** der Kompetenz des Spezialisten.'
+      required:
+        - benennung
+    weitere_kompetenz:
+      type: object
+      properties:
+        benennung:
+          type: string
+          description: '**Benennung** der Kompetenz des Designers.'
+      required:
+        - benennung
